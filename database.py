@@ -1,42 +1,56 @@
 import sqlite3
 
-# Connect to database (creates library.db if not exists)
-conn = sqlite3.connect("library.db")
-cursor = conn.cursor()
+DB_NAME = "library.db"
 
-# Create Students table
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS students (
-    student_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL
-);
-""")
+def get_connection():
+    return sqlite3.connect(DB_NAME)
 
-# Create Books table
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS books (
-    book_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    author TEXT NOT NULL,
-    available INTEGER DEFAULT 1
-);
-""")
+def init_db():
+    conn = get_connection()
+    cursor = conn.cursor()
 
-# Create Borrowed Books table
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS borrowed_books (
-    borrow_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    student_id INTEGER,
-    book_id INTEGER,
-    borrow_date TEXT,
-    return_date TEXT,
-    FOREIGN KEY(student_id) REFERENCES students(student_id),
-    FOREIGN KEY(book_id) REFERENCES books(book_id)
-);
-""")
+    # Create tables if not exists
+    cursor.execute('''CREATE TABLE IF NOT EXISTS books (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        title TEXT NOT NULL,
+                        author TEXT,
+                        available INTEGER DEFAULT 1)''')
 
-print("✅ Database and tables created successfully!")
+    cursor.execute('''CREATE TABLE IF NOT EXISTS students (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        email TEXT)''')
 
-conn.commit()
-conn.close()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS transactions (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        student_id INTEGER,
+                        book_id INTEGER,
+                        borrow_date TEXT,
+                        return_date TEXT,
+                        FOREIGN KEY(student_id) REFERENCES students(id),
+                        FOREIGN KEY(book_id) REFERENCES books(id))''')
+
+    conn.commit()
+    conn.close()
+
+def add_book(title, author):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO books (title, author) VALUES (?, ?)", (title, author))
+    conn.commit()
+    conn.close()
+
+def add_student(name, email):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO students (name, email) VALUES (?, ?)", (name, email))
+    conn.commit()
+    conn.close()
+
+def get_all_books():
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM books")
+    books = cursor.fetchall()
+    conn.close()
+    return books

@@ -96,6 +96,33 @@ def get_all_students():
     conn.close()
     return rows
 
+def delete_book(book_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    # Check if book is currently borrowed
+    cur.execute("SELECT * FROM transactions WHERE book_id=? AND return_date IS NULL", (book_id,))
+    if cur.fetchone():
+        conn.close()
+        return False  # Cannot delete
+    cur.execute("DELETE FROM books WHERE id=?", (book_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+def delete_student(student_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    # Check if student has active borrow
+    cur.execute("SELECT * FROM transactions WHERE student_id=? AND return_date IS NULL", (student_id,))
+    if cur.fetchone():
+        conn.close()
+        return False
+    cur.execute("DELETE FROM students WHERE id=?", (student_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+
 # --- Borrow/Return ---
 def borrow_book(student_id, book_id, borrow_date):
     conn = get_connection()

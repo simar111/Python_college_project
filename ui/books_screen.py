@@ -11,9 +11,9 @@ def refresh_books(listbox):
 def books_window():
     win = tk.Toplevel()
     win.title("Books Management")
-    win.geometry("500x400")
+    win.geometry("500x450")
 
-    # Add book
+    # --- Add Book Section ---
     tk.Label(win, text="Title:").pack()
     title_entry = tk.Entry(win)
     title_entry.pack()
@@ -40,6 +40,22 @@ def books_window():
         else:
             messagebox.showerror("Error", "Invalid details")
 
+    def delete_book():
+        selection = book_listbox.get(tk.ACTIVE)
+        if not selection:
+            messagebox.showerror("Error", "Select a book to delete")
+            return
+        book_id = selection.split("|")[0].replace("ID:", "").strip()
+        confirm = messagebox.askyesno("Confirm", "Delete this book?")
+        if confirm:
+            success = database.delete_book(int(book_id))
+            if success:
+                messagebox.showinfo("Deleted", "Book removed!")
+            else:
+                messagebox.showerror("Error", "Book is currently borrowed!")
+            refresh_books(book_listbox)
+
     tk.Button(win, text="Add Book", command=add_book).pack(pady=5)
+    tk.Button(win, text="Delete Book", command=delete_book).pack(pady=5)
 
     refresh_books(book_listbox)

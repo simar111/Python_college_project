@@ -11,7 +11,7 @@ def refresh_students(listbox):
 def students_window():
     win = tk.Toplevel()
     win.title("Students Management")
-    win.geometry("500x400")
+    win.geometry("500x450")
 
     tk.Label(win, text="Name:").pack()
     name_entry = tk.Entry(win)
@@ -39,6 +39,22 @@ def students_window():
         else:
             messagebox.showerror("Error", "Name required")
 
+    def delete_student():
+        selection = student_listbox.get(tk.ACTIVE)
+        if not selection:
+            messagebox.showerror("Error", "Select a student to delete")
+            return
+        student_id = selection.split("|")[0].replace("ID:", "").strip()
+        confirm = messagebox.askyesno("Confirm", "Delete this student?")
+        if confirm:
+            success = database.delete_student(int(student_id))
+            if success:
+                messagebox.showinfo("Deleted", "Student removed!")
+            else:
+                messagebox.showerror("Error", "Student has active borrow!")
+            refresh_students(student_listbox)
+
     tk.Button(win, text="Add Student", command=add_student).pack(pady=5)
+    tk.Button(win, text="Delete Student", command=delete_student).pack(pady=5)
 
     refresh_students(student_listbox)
